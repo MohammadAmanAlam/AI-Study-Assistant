@@ -11,7 +11,7 @@ const app = express();
 // SERVER PORT
 // ==========================================
 
-const PORT = process.env.PORT || 3001;
+const START_PORT = Number(process.env.PORT) || 3001;
 
 
 // ==========================================
@@ -21,8 +21,6 @@ const PORT = process.env.PORT || 3001;
 const uploadDir = path.join(__dirname, "uploads");
 const dataDir = path.join(__dirname, "data");
 
-// Use data/papers.json if available.
-// Otherwise use papers.json in the main project folder.
 const database = path.join(dataDir, "papers.json");
 
 
@@ -67,13 +65,28 @@ app.use(
 
 
 // ==========================================
-// SERVE WEBSITE
+// WEBSITE FILES
 // ==========================================
 
-// If public folder exists, use it.
-// Otherwise serve the files from the main project folder.
+const publicDir = path.join(
+    __dirname,
+    "public"
+);
 
-const publicDir = path.join(__dirname, "public");
+const publicIndex = path.join(
+    publicDir,
+    "index.html"
+);
+
+const rootIndex = path.join(
+    __dirname,
+    "index.html"
+);
+
+
+// ==========================================
+// SERVE WEBSITE
+// ==========================================
 
 if (fs.existsSync(publicDir)) {
 
@@ -102,47 +115,39 @@ app.use(
 
 
 // ==========================================
-// MULTER FILE UPLOAD
+// MULTER STORAGE
 // ==========================================
 
 const storage = multer.diskStorage({
 
-    destination: function (
-        req,
-        file,
-        cb
-    ) {
+    destination: function (req, file, cb) {
 
         cb(
             null,
             uploadDir
         );
+
     },
 
-
-    filename: function (
-        req,
-        file,
-        cb
-    ) {
+    filename: function (req, file, cb) {
 
         const safeName =
-            file.originalname.replace(
-                /[^a-zA-Z0-9._-]/g,
-                "_"
-            );
-
+            file.originalname
+                .replace(
+                    /[^a-zA-Z0-9._-]/g,
+                    "_"
+                );
 
         const finalName =
             Date.now() +
             "-" +
             safeName;
 
-
         cb(
             null,
             finalName
         );
+
     }
 
 });
@@ -156,52 +161,51 @@ const upload = multer({
 
         fileSize:
             25 * 1024 * 1024
+
     },
 
+    fileFilter: function (
+        req,
+        file,
+        cb
+    ) {
 
-    fileFilter:
-        function (
-            req,
-            file,
-            cb
+        const allowedExtensions = [
+
+            ".pdf",
+            ".docx",
+            ".txt",
+            ".md"
+
+        ];
+
+        const extension =
+            path.extname(
+                file.originalname
+            ).toLowerCase();
+
+        if (
+            allowedExtensions.includes(
+                extension
+            )
         ) {
 
-            const allowedExtensions = [
+            cb(
+                null,
+                true
+            );
 
-                ".pdf",
-                ".docx",
-                ".txt",
-                ".md"
+        } else {
 
-            ];
-
-
-            const extension =
-                path.extname(
-                    file.originalname
-                ).toLowerCase();
-
-
-            if (
-                allowedExtensions.includes(
-                    extension
+            cb(
+                new Error(
+                    "Only PDF, DOCX, TXT and MD files are allowed."
                 )
-            ) {
+            );
 
-                cb(
-                    null,
-                    true
-                );
-
-            } else {
-
-                cb(
-                    new Error(
-                        "Only PDF, DOCX, TXT and MD files are allowed."
-                    )
-                );
-            }
         }
+
+    }
 
 });
 
@@ -220,18 +224,28 @@ function readDatabase() {
                 "utf8"
             );
 
+        const parsed =
+            JSON.parse(data);
 
-        return JSON.parse(data);
+        if (!Array.isArray(parsed)) {
+
+            return [];
+
+        }
+
+        return parsed;
 
     } catch (error) {
 
         console.error(
             "Database read error:",
-            error
+            error.message
         );
 
         return [];
+
     }
+
 }
 
 
@@ -250,17 +264,20 @@ function saveDatabase(data) {
             ),
 
             "utf8"
+
         );
 
     } catch (error) {
 
         console.error(
             "Database save error:",
-            error
+            error.message
         );
 
         throw error;
+
     }
+
 }
 
 
@@ -288,11 +305,12 @@ function cleanText(text) {
         )
 
         .trim();
+
 }
 
 
 // ==========================================
-// SPLIT DOCUMENT INTO CHUNKS
+// CREATE DOCUMENT CHUNKS
 // ==========================================
 
 function createChunks(
@@ -304,12 +322,9 @@ function createChunks(
     const clean =
         cleanText(text);
 
-
     const chunks = [];
 
-
     let start = 0;
-
 
     while (
         start < clean.length
@@ -321,7 +336,6 @@ function createChunks(
                 clean.length
             );
 
-
         const chunk =
             clean
                 .slice(
@@ -330,7 +344,6 @@ function createChunks(
                 )
                 .trim();
 
-
         if (
             chunk.length > 30
         ) {
@@ -338,31 +351,32 @@ function createChunks(
             chunks.push(
                 chunk
             );
-        }
 
+        }
 
         if (
             end >= clean.length
         ) {
 
             break;
-        }
 
+        }
 
         start =
             Math.max(
                 end - overlap,
                 start + 1
             );
+
     }
 
-
     return chunks;
+
 }
 
 
 // ==========================================
-// EXTRACT TEXT FROM FILE
+// EXTRACT TEXT
 // ==========================================
 
 async function extractText(
@@ -376,9 +390,9 @@ async function extractText(
         ).toLowerCase();
 
 
-    // ======================================
+    // --------------------------------------
     // PDF
-    // ======================================
+    // --------------------------------------
 
     if (
         extension === ".pdf"
@@ -389,20 +403,19 @@ async function extractText(
                 filePath
             );
 
-
         const result =
             await pdfParse(
                 buffer
             );
 
+        return result.text || "";
 
-        return result.text;
     }
 
 
-    // ======================================
+    // --------------------------------------
     // DOCX
-    // ======================================
+    // --------------------------------------
 
     if (
         extension === ".docx"
@@ -416,19 +429,20 @@ async function extractText(
 
             });
 
+        return result.value || "";
 
-        return result.value;
     }
 
 
-    // ======================================
+    // --------------------------------------
     // TXT / MD
-    // ======================================
+    // --------------------------------------
 
     return fs.readFileSync(
         filePath,
         "utf8"
     );
+
 }
 
 
@@ -467,11 +481,18 @@ function calculateScore(
             "were",
 
             "can",
+            "could",
             "does",
+            "did",
 
             "explain",
             "tell",
-            "give"
+            "give",
+            "please",
+
+            "show",
+            "define",
+            "describe"
 
         ]);
 
@@ -487,12 +508,8 @@ function calculateScore(
             .split(/\s+/)
             .filter(
                 word =>
-
                     word.length > 2 &&
-
-                    !stopWords.has(
-                        word
-                    )
+                    !stopWords.has(word)
             );
 
 
@@ -514,11 +531,11 @@ function calculateScore(
         ) {
 
             score += 2;
+
         }
 
 
         const count =
-
             lowerText.split(
                 word
             ).length - 1;
@@ -528,10 +545,12 @@ function calculateScore(
             count,
             5
         );
+
     }
 
 
     return score;
+
 }
 
 
@@ -545,7 +564,6 @@ function searchDocuments(
 
     const papers =
         readDatabase();
-
 
     const results = [];
 
@@ -590,8 +608,11 @@ function searchDocuments(
                         question,
                         chunk
                     )
+
             });
+
         }
+
     }
 
 
@@ -607,11 +628,12 @@ function searchDocuments(
             0,
             5
         );
+
 }
 
 
 // ==========================================
-// GENERATE SIMPLE ANSWER
+// GENERATE ANSWER
 // ==========================================
 
 function generateAnswer(
@@ -630,9 +652,11 @@ function generateAnswer(
         useful.length === 0
     ) {
 
-        return `I could not find enough information for this question in your uploaded materials.
+        return (
+            `I could not find enough information for "${question}" in your uploaded study materials.\n\n` +
+            `Try asking the question using important keywords from your PDF or notes.`
+        );
 
-Try asking the question using important words from your PDF.`;
     }
 
 
@@ -673,11 +697,13 @@ Try asking the question using important words from your PDF.`;
                             500
                         ) +
                         "...";
+
                 }
 
 
                 answer +=
                     `${index + 1}. ${text}\n\n`;
+
             }
         );
 
@@ -687,6 +713,7 @@ Try asking the question using important words from your PDF.`;
 
 
     return answer;
+
 }
 
 
@@ -701,43 +728,38 @@ app.get(
         res
     ) {
 
-        const publicIndex =
-            path.join(
-                __dirname,
-                "public",
-                "index.html"
-            );
-
-        const rootIndex =
-            path.join(
-                __dirname,
-                "index.html"
-            );
-
-
         if (
-            fs.existsSync(publicIndex)
+            fs.existsSync(
+                publicIndex
+            )
         ) {
 
             return res.sendFile(
                 publicIndex
             );
+
         }
 
 
         if (
-            fs.existsSync(rootIndex)
+            fs.existsSync(
+                rootIndex
+            )
         ) {
 
             return res.sendFile(
                 rootIndex
             );
+
         }
 
 
-        res.status(404).send(
-            "index.html not found."
-        );
+        res
+            .status(404)
+            .send(
+                "index.html not found. Put index.html inside the project folder or public folder."
+            );
+
     }
 );
 
@@ -771,16 +793,18 @@ app.post(
                     .status(400)
                     .json({
 
+                        success: false,
+
                         message:
                             "Please upload at least one file."
 
                     });
+
             }
 
 
             const papers =
                 readDatabase();
-
 
             const uploaded = [];
 
@@ -790,93 +814,119 @@ app.post(
                 of req.files
             ) {
 
-                const text =
-                    await extractText(
+                try {
 
-                        file.path,
+                    const text =
+                        await extractText(
 
-                        file.originalname
+                            file.path,
 
-                    );
-
-
-                const chunks =
-                    createChunks(
-                        text
-                    );
-
-
-                const paper = {
-
-                    id:
-                        Date.now() +
-                        Math.floor(
-                            Math.random() *
-                            100000
-                        ),
-
-                    title:
-                        req.body.title ||
-                        path.parse(
                             file.originalname
-                        ).name,
 
-                    author:
-                        req.body.author ||
-                        "Not provided",
-
-                    year:
-                        req.body.year ||
-                        "",
-
-                    journal:
-                        req.body.journal ||
-                        "",
-
-                    reference:
-                        req.body.reference ||
-                        "",
-
-                    description:
-                        req.body.description ||
-                        "",
-
-                    originalFileName:
-                        file.originalname,
-
-                    fileName:
-                        file.filename,
-
-                    fileUrl:
-                        "/uploads/" +
-                        file.filename,
-
-                    chunks:
-                        chunks,
-
-                    uploadedAt:
-                        new Date()
-                            .toISOString()
-                };
+                        );
 
 
-                papers.unshift(
-                    paper
-                );
+                    const chunks =
+                        createChunks(
+                            text
+                        );
 
 
-                uploaded.push({
+                    const paper = {
 
-                    title:
-                        paper.title,
+                        id:
+                            Date.now() +
+                            Math.floor(
+                                Math.random() *
+                                100000
+                            ),
 
-                    file:
-                        paper.originalFileName,
+                        title:
+                            req.body.title ||
+                            path.parse(
+                                file.originalname
+                            ).name,
 
-                    chunks:
-                        chunks.length
+                        author:
+                            req.body.author ||
+                            "Not provided",
 
-                });
+                        year:
+                            req.body.year ||
+                            "",
+
+                        journal:
+                            req.body.journal ||
+                            "",
+
+                        reference:
+                            req.body.reference ||
+                            "",
+
+                        description:
+                            req.body.description ||
+                            "",
+
+                        originalFileName:
+                            file.originalname,
+
+                        fileName:
+                            file.filename,
+
+                        fileUrl:
+                            "/uploads/" +
+                            file.filename,
+
+                        chunks:
+                            chunks,
+
+                        uploadedAt:
+                            new Date()
+                                .toISOString()
+
+                    };
+
+
+                    papers.unshift(
+                        paper
+                    );
+
+
+                    uploaded.push({
+
+                        title:
+                            paper.title,
+
+                        file:
+                            paper.originalFileName,
+
+                        chunks:
+                            chunks.length,
+
+                        characters:
+                            text.length
+
+                    });
+
+                } catch (fileError) {
+
+                    console.error(
+                        "File processing error:",
+                        fileError
+                    );
+
+                    uploaded.push({
+
+                        file:
+                            file.originalname,
+
+                        error:
+                            fileError.message
+
+                    });
+
+                }
+
             }
 
 
@@ -901,20 +951,28 @@ app.post(
         } catch (error) {
 
             console.error(
+                "UPLOAD ERROR:",
                 error
             );
 
 
             res
-                .status(400)
+                .status(500)
                 .json({
 
+                    success:
+                        false,
+
                     message:
-                        error.message
+                        error.message ||
+                        "Could not process the uploaded material."
 
                 });
+
         }
+
     }
+
 );
 
 
@@ -948,10 +1006,14 @@ app.post(
                     .status(400)
                     .json({
 
+                        success:
+                            false,
+
                         message:
                             "Please enter a question."
 
                     });
+
             }
 
 
@@ -982,6 +1044,9 @@ app.post(
 
                     .map(
                         result => ({
+
+                            paperId:
+                                result.paperId,
 
                             title:
                                 result.title,
@@ -1034,6 +1099,9 @@ app.post(
 
             res.json({
 
+                success:
+                    true,
+
                 answer:
                     answer,
 
@@ -1052,6 +1120,7 @@ app.post(
         } catch (error) {
 
             console.error(
+                "ASK ERROR:",
                 error
             );
 
@@ -1060,12 +1129,18 @@ app.post(
                 .status(500)
                 .json({
 
+                    success:
+                        false,
+
                     message:
                         "Something went wrong while searching."
 
                 });
+
         }
+
     }
+
 );
 
 
@@ -1111,6 +1186,9 @@ app.get(
                         reference:
                             paper.reference,
 
+                        description:
+                            paper.description,
+
                         fileName:
                             paper.originalFileName,
 
@@ -1118,15 +1196,23 @@ app.get(
                             paper.fileUrl,
 
                         chunks:
-                            (paper.chunks || []).length
+                            (
+                                paper.chunks ||
+                                []
+                            ).length,
+
+                        uploadedAt:
+                            paper.uploadedAt
 
                     })
                 )
+
             );
 
         } catch (error) {
 
             console.error(
+                "MATERIALS ERROR:",
                 error
             );
 
@@ -1135,12 +1221,18 @@ app.get(
                 .status(500)
                 .json({
 
+                    success:
+                        false,
+
                     message:
                         "Could not load materials."
 
                 });
+
         }
+
     }
+
 );
 
 
@@ -1157,62 +1249,95 @@ app.get(
         res
     ) {
 
-        const papers =
-            readDatabase();
+        try {
+
+            const papers =
+                readDatabase();
 
 
-        const paper =
-            papers.find(
+            const paper =
+                papers.find(
 
-                item =>
-                    String(
-                        item.id
-                    ) ===
-                    String(
-                        req.params.id
-                    )
+                    item =>
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            req.params.id
+                        )
 
+                );
+
+
+            if (
+                !paper
+            ) {
+
+                return res
+                    .status(404)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Material not found."
+
+                    });
+
+            }
+
+
+            const reference =
+
+                `${paper.author}. ` +
+
+                `"${paper.title}." ` +
+
+                `${paper.journal || ""} ` +
+
+                `${paper.year || "n.d."}. ` +
+
+                `${paper.reference || ""}`;
+
+
+            res.json({
+
+                success:
+                    true,
+
+                reference:
+                    reference.trim(),
+
+                paper:
+                    paper
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "REFERENCE ERROR:",
+                error
             );
 
 
-        if (
-            !paper
-        ) {
-
-            return res
-                .status(404)
+            res
+                .status(500)
                 .json({
 
+                    success:
+                        false,
+
                     message:
-                        "Material not found."
+                        "Could not create reference."
 
                 });
+
         }
 
-
-        const reference =
-
-            `${paper.author}. ` +
-
-            `"${paper.title}." ` +
-
-            `${paper.journal || ""} ` +
-
-            `${paper.year || "n.d."}. ` +
-
-            `${paper.reference || ""}`;
-
-
-        res.json({
-
-            reference:
-                reference.trim(),
-
-            paper:
-                paper
-
-        });
     }
+
 );
 
 
@@ -1221,7 +1346,9 @@ app.get(
 // ==========================================
 
 app.get(
+
     "/health",
+
     function (
         req,
         res
@@ -1236,6 +1363,35 @@ app.get(
                 "StudyFlow AI server is running."
 
         });
+
+    }
+
+);
+
+
+// ==========================================
+// 404 API HANDLER
+// ==========================================
+
+app.use(
+    "/api",
+    function (
+        req,
+        res
+    ) {
+
+        res
+            .status(404)
+            .json({
+
+                success:
+                    false,
+
+                message:
+                    "API endpoint not found."
+
+            });
+
     }
 );
 
@@ -1245,6 +1401,7 @@ app.get(
 // ==========================================
 
 app.use(
+
     function (
         error,
         req,
@@ -1253,20 +1410,37 @@ app.use(
     ) {
 
         console.error(
+            "SERVER ERROR:",
             error
         );
+
+
+        if (
+            res.headersSent
+        ) {
+
+            return next(
+                error
+            );
+
+        }
 
 
         res
             .status(400)
             .json({
 
+                success:
+                    false,
+
                 message:
                     error.message ||
                     "Something went wrong."
 
             });
+
     }
+
 );
 
 
@@ -1274,33 +1448,75 @@ app.use(
 // START SERVER
 // ==========================================
 
-app.listen(
-    PORT,
-    "0.0.0.0",
-    function () {
+function startServer(port) {
 
-        console.log("");
-        console.log(
-            "===================================="
+    const server =
+        app.listen(
+
+            port,
+
+            "0.0.0.0",
+
+            function () {
+
+                console.log("");
+                console.log("========================================");
+                console.log("          STUDYFLOW AI SERVER");
+                console.log("========================================");
+                console.log(
+                    `Server running on port ${port}`
+                );
+                console.log(
+                    `Website: http://localhost:${port}`
+                );
+                console.log(
+                    `Health:  http://localhost:${port}/health`
+                );
+                console.log("========================================");
+                console.log("");
+
+            }
+
         );
 
-        console.log(
-            "       STUDYFLOW AI SERVER"
-        );
 
-        console.log(
-            "===================================="
-        );
+    server.on(
+        "error",
+        function (error) {
 
-        console.log(
-            `Server running on port ${PORT}`
-        );
+            if (
+                error.code ===
+                "EADDRINUSE"
+            ) {
 
-        console.log(
-            "===================================="
-        );
+                console.log("");
+                console.log(
+                    `Port ${port} is already in use.`
+                );
+                console.log(
+                    `Trying port ${port + 1}...`
+                );
+                console.log("");
 
-        console.log("");
+                startServer(
+                    port + 1
+                );
 
-    }
+            } else {
+
+                console.error(
+                    "SERVER ERROR:",
+                    error
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+startServer(
+    START_PORT
 );
