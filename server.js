@@ -11,7 +11,7 @@ const app = express();
 // SERVER PORT
 // ==========================================
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 
 // ==========================================
@@ -20,10 +20,15 @@ const PORT = 3001;
 
 const uploadDir = path.join(__dirname, "uploads");
 const dataDir = path.join(__dirname, "data");
+
+// Use data/papers.json if available.
+// Otherwise use papers.json in the main project folder.
 const database = path.join(dataDir, "papers.json");
 
 
-// Create folders automatically
+// ==========================================
+// CREATE REQUIRED FOLDERS
+// ==========================================
 
 fs.mkdirSync(uploadDir, {
     recursive: true
@@ -34,13 +39,16 @@ fs.mkdirSync(dataDir, {
 });
 
 
-// Create database file if it doesn't exist
+// ==========================================
+// CREATE DATABASE FILE
+// ==========================================
 
 if (!fs.existsSync(database)) {
 
     fs.writeFileSync(
         database,
-        "[]"
+        "[]",
+        "utf8"
     );
 }
 
@@ -58,16 +66,34 @@ app.use(
 );
 
 
-// Serve website
+// ==========================================
+// SERVE WEBSITE
+// ==========================================
 
-app.use(
-    express.static(
-        path.join(__dirname, "public")
-    )
-);
+// If public folder exists, use it.
+// Otherwise serve the files from the main project folder.
+
+const publicDir = path.join(__dirname, "public");
+
+if (fs.existsSync(publicDir)) {
+
+    app.use(
+        express.static(publicDir)
+    );
+
+} else {
+
+    app.use(
+        express.static(__dirname, {
+            index: "index.html"
+        })
+    );
+}
 
 
-// Serve uploaded files
+// ==========================================
+// SERVE UPLOADED FILES
+// ==========================================
 
 app.use(
     "/uploads",
@@ -199,6 +225,11 @@ function readDatabase() {
 
     } catch (error) {
 
+        console.error(
+            "Database read error:",
+            error
+        );
+
         return [];
     }
 }
@@ -206,16 +237,30 @@ function readDatabase() {
 
 function saveDatabase(data) {
 
-    fs.writeFileSync(
+    try {
 
-        database,
+        fs.writeFileSync(
 
-        JSON.stringify(
-            data,
-            null,
-            2
-        )
-    );
+            database,
+
+            JSON.stringify(
+                data,
+                null,
+                2
+            ),
+
+            "utf8"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Database save error:",
+            error
+        );
+
+        throw error;
+    }
 }
 
 
@@ -331,9 +376,9 @@ async function extractText(
         ).toLowerCase();
 
 
-    // --------------------------
+    // ======================================
     // PDF
-    // --------------------------
+    // ======================================
 
     if (
         extension === ".pdf"
@@ -355,9 +400,9 @@ async function extractText(
     }
 
 
-    // --------------------------
+    // ======================================
     // DOCX
-    // --------------------------
+    // ======================================
 
     if (
         extension === ".docx"
@@ -376,9 +421,9 @@ async function extractText(
     }
 
 
-    // --------------------------
+    // ======================================
     // TXT / MD
-    // --------------------------
+    // ======================================
 
     return fs.readFileSync(
         filePath,
@@ -643,6 +688,58 @@ Try asking the question using important words from your PDF.`;
 
     return answer;
 }
+
+
+// ==========================================
+// HOME PAGE
+// ==========================================
+
+app.get(
+    "/",
+    function (
+        req,
+        res
+    ) {
+
+        const publicIndex =
+            path.join(
+                __dirname,
+                "public",
+                "index.html"
+            );
+
+        const rootIndex =
+            path.join(
+                __dirname,
+                "index.html"
+            );
+
+
+        if (
+            fs.existsSync(publicIndex)
+        ) {
+
+            return res.sendFile(
+                publicIndex
+            );
+        }
+
+
+        if (
+            fs.existsSync(rootIndex)
+        ) {
+
+            return res.sendFile(
+                rootIndex
+            );
+        }
+
+
+        res.status(404).send(
+            "index.html not found."
+        );
+    }
+);
 
 
 // ==========================================
@@ -985,45 +1082,64 @@ app.get(
         res
     ) {
 
-        const papers =
-            readDatabase();
+        try {
+
+            const papers =
+                readDatabase();
 
 
-        res.json(
+            res.json(
 
-            papers.map(
-                paper => ({
+                papers.map(
+                    paper => ({
 
-                    id:
-                        paper.id,
+                        id:
+                            paper.id,
 
-                    title:
-                        paper.title,
+                        title:
+                            paper.title,
 
-                    author:
-                        paper.author,
+                        author:
+                            paper.author,
 
-                    year:
-                        paper.year,
+                        year:
+                            paper.year,
 
-                    journal:
-                        paper.journal,
+                        journal:
+                            paper.journal,
 
-                    reference:
-                        paper.reference,
+                        reference:
+                            paper.reference,
 
-                    fileName:
-                        paper.originalFileName,
+                        fileName:
+                            paper.originalFileName,
 
-                    fileUrl:
-                        paper.fileUrl,
+                        fileUrl:
+                            paper.fileUrl,
 
-                    chunks:
-                        paper.chunks.length
+                        chunks:
+                            (paper.chunks || []).length
 
-                })
-            )
-        );
+                    })
+                )
+            );
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            res
+                .status(500)
+                .json({
+
+                    message:
+                        "Could not load materials."
+
+                });
+        }
     }
 );
 
@@ -1101,6 +1217,30 @@ app.get(
 
 
 // ==========================================
+// HEALTH CHECK
+// ==========================================
+
+app.get(
+    "/health",
+    function (
+        req,
+        res
+    ) {
+
+        res.json({
+
+            status:
+                "OK",
+
+            message:
+                "StudyFlow AI server is running."
+
+        });
+    }
+);
+
+
+// ==========================================
 // ERROR HANDLER
 // ==========================================
 
@@ -1135,9 +1275,8 @@ app.use(
 // ==========================================
 
 app.listen(
-
     PORT,
-
+    "0.0.0.0",
     function () {
 
         console.log("");
@@ -1154,7 +1293,7 @@ app.listen(
         );
 
         console.log(
-            `Server running at: http://localhost:${PORT}`
+            `Server running on port ${PORT}`
         );
 
         console.log(
@@ -1162,6 +1301,6 @@ app.listen(
         );
 
         console.log("");
-    }
 
+    }
 );
