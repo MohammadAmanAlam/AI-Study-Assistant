@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        StudyFlow AI
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="brand">
+
+        <div class="brand-box">
+            SF
+        </div>
+
+        <div>
+
+            <strong>
+                StudyFlow
+            </strong>
+
+            <small>
+                AI STUDY ASSISTANT
+            </small>
+
+        </div>
+
+    </div>
+
+    <div
+        id="stepNumber"
+        class="step-number"
+    >
+        STEP 1 OF 7
+    </div>
+
+</header>
+
+
+<main>
+
+<!-- START -->
+
+<section
+    id="welcome"
+    class="welcome"
+>
+
+    <div class="tag">
+        SOURCE • LEARN • UNDERSTAND
+    </div>
+
+    <h1>
+
+        Understand your
+        <span>study material.</span>
+
+    </h1>
+
+    <p>
+
+        Upload your PDF, notes or research
+        paper and let the system guide you
+        through every step.
+
+    </p>
+
+    <button
+        class="main-button"
+        onclick="startSystem()"
+    >
+
+        Start System
+
+        <span>→</span>
+
+    </button>
+
+</section>
+
+
+<!-- WIZARD -->
+
+<section
+    id="wizard"
+    class="wizard hidden"
+>
+
+<div class="progress">
+
+    <div id="progressBar"></div>
+
+</div>
+
+
+<!-- STEP 1 -->
+
+<div
+    class="step"
+    data-step="1"
+>
+
+    <div class="number">
+        01
+    </div>
+
+    <div class="tag">
+        STEP 1
+    </div>
+
+    <h2>
+        Upload your material
+    </h2>
+
+    <p>
+        You can upload PDFs, Word documents,
+        text files and multiple study materials.
+    </p>
+
+
+    <label class="upload-box">
+
+        <input
+            type="file"
+            id="materials"
+            multiple
+            accept=".pdf,.docx,.txt,.md"
+        >
+
+        <div class="upload-icon">
+            +
+        </div>
+
+        <strong>
+            Choose your files
+        </strong>
+
+        <span>
+            PDF • DOCX • TXT • MD
+        </span>
+
+    </label>
+
+
+    <div
+        id="fileList"
+        class="file-list"
+    ></div>
+
+
+    <button
+        class="main-button"
+        onclick="nextFromUpload()"
+    >
+
+        Continue
+
+        <span>→</span>
+
+    </button>
+
+</div>
+
+
+<!-- STEP 2 -->
+
+<div
+    class="step hidden"
+    data-step="2"
+>
+
+    <div class="number">
+        02
+    </div>
+
+    <div class="tag">
+        STEP 2
+    </div>
+
+    <h2>
+        Add material details
+    </h2>
+
+    <p>
+        Add the author and reference details.
+        These will appear at the end.
+    </p>
+
+
+    <div class="form">
+
+        <label>
+
+            AUTHOR / RESEARCHER
+
+            <input
+                id="author"
+                placeholder="Enter author name"
+            >
+
+        </label>
+
+
+        <label>
+
+            YEAR
+
+            <input
+                id="year"
+                placeholder="2025"
+            >
+
+        </label>
+
+
+        <label class="full">
+
+            TITLE
+
+            <input
+                id="title"
+                placeholder="Enter paper or material title"
+            >
+
+        </label>
+
+
+        <label>
+
+            JOURNAL / CONFERENCE
+
+            <input
+                id="journal"
+                placeholder="Optional"
+            >
+
+        </label>
+
+
+        <label>
+
+            DOI / REFERENCE
+
+            <input
+                id="reference"
+                placeholder="Optional"
+            >
+
+        </label>
+
+    </div>
+
+
+    <div class="buttons">
+
+        <button
+            class="secondary"
+            onclick="goStep(1)"
+        >
+            ← Back
+        </button>
+
+        <button
+            class="main-button"
+            onclick="processMaterial()"
+        >
+            Process Material →
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- STEP 3 -->
+
+<div
+    class="step hidden"
+    data-step="3"
+>
+
+    <div class="number">
+        03
+    </div>
+
+    <div class="tag">
+        STEP 3
+    </div>
+
+    <h2>
+        Processing your material
+    </h2>
+
+    <p id="processingText">
+
+        The system is reading your document,
+        extracting text and creating searchable
+        sections.
+
+    </p>
+
+
+    <div class="process">
+
+        <div>
+            ✓ File received
+        </div>
+
+        <div>
+            ✓ Text extracted
+        </div>
+
+        <div>
+            ✓ Content divided into chunks
+        </div>
+
+        <div>
+            ✓ Search index created
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- STEP 4 -->
+
+<div
+    class="step hidden"
+    data-step="4"
+>
+
+    <div class="number">
+        04
+    </div>
+
+    <div class="tag">
+        STEP 4
+    </div>
+
+    <h2>
+        Ask your question
+    </h2>
+
+    <p>
+        Ask anything about your uploaded
+        study material.
+    </p>
+
+
+    <div class="question-box">
+
+        <textarea
+            id="question"
+            placeholder="Example: Explain the main topic in simple English."
+        ></textarea>
+
+        <button
+            class="main-button"
+            onclick="askQuestion()"
+        >
+
+            Find Answer →
+
+        </button>
+
+    </div>
+
+
+    <div class="suggestions">
+
+        <button
+            onclick="setQuestion('Explain the main topic in simple words.')"
+        >
+            Explain simply
+        </button>
+
+        <button
+            onclick="setQuestion('What are the important points?')"
+        >
+            Important points
+        </button>
+
+        <button
+            onclick="setQuestion('What is the research gap?')"
+        >
+            Research gap
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- STEP 5 -->
+
+<div
+    class="step hidden"
+    data-step="5"
+>
+
+    <div class="number">
+        05
+    </div>
+
+    <div class="tag">
+        STEP 5
+    </div>
+
+    <h2>
+        Your answer
+    </h2>
+
+
+    <div
+        id="answer"
+        class="answer"
+    >
+        Searching...
+    </div>
+
+
+    <button
+        class="source-button"
+        onclick="toggleSources()"
+    >
+
+        ↓ Show Source Trace
+
+    </button>
+
+
+    <div
+        id="sources"
+        class="sources hidden"
+    ></div>
+
+
+    <div class="buttons">
+
+        <button
+            class="secondary"
+            onclick="goStep(4)"
+        >
+            ← Ask Again
+        </button>
+
+        <button
+            class="main-button"
+            onclick="goStep(6)"
+        >
+            Concept Map →
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- STEP 6 -->
+
+<div
+    class="step hidden"
+    data-step="6"
+>
+
+    <div class="number">
+        06
+    </div>
+
+    <div class="tag">
+        STEP 6
+    </div>
+
+    <h2>
+        Concept Map
+    </h2>
+
+    <p>
+        See the main topic and related
+        concepts from your question.
+    </p>
+
+
+    <div
+        id="conceptMap"
+        class="concept-map"
+    ></div>
+
+
+    <button
+        class="main-button"
+        onclick="showFinalReference()"
+    >
+        Show Final Reference →
+    </button>
+
+</div>
+
+
+<!-- STEP 7 -->
+
+<div
+    class="step hidden"
+    data-step="7"
+>
+
+    <div class="number">
+        ✓
+    </div>
+
+    <div class="tag">
+        STEP 7 • FINAL
+    </div>
+
+    <h2>
+        Study record complete
+    </h2>
+
+    <p>
+        Your material, answer, source trace
+        and reference are connected.
+    </p>
+
+
+    <div class="reference-card">
+
+        <div class="tag">
+            REFERENCE
+        </div>
+
+        <p id="finalReference">
+            Loading reference...
+        </p>
+
+    </div>
+
+
+    <button
+        class="main-button"
+        onclick="goStep(4)"
+    >
+        Ask Another Question →
+    </button>
+
+</div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+    StudyFlow AI
+    <span>•</span>
+    Source-grounded learning
+
+</footer>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>

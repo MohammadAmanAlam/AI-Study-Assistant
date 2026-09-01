@@ -1,0 +1,809 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+
+    background: #090909;
+
+    color: #f5f5f5;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    min-height: 100vh;
+}
+
+
+/* HEADER */
+
+header {
+
+    height: 76px;
+
+    border-bottom:
+        1px solid #252525;
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items: center;
+
+    padding:
+        0 6%;
+
+    position: sticky;
+
+    top: 0;
+
+    background:
+        rgba(9,9,9,.92);
+
+    backdrop-filter:
+        blur(12px);
+
+    z-index: 20;
+}
+
+
+.brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+
+.brand-box {
+
+    width: 40px;
+
+    height: 40px;
+
+    border:
+        1px solid #555;
+
+    display: grid;
+
+    place-items: center;
+
+    font-size: 11px;
+
+    font-weight: bold;
+}
+
+
+.brand strong {
+
+    display: block;
+
+    font-size: 15px;
+}
+
+
+.brand small {
+
+    display: block;
+
+    color: #666;
+
+    font-size: 7px;
+
+    letter-spacing: 2px;
+
+    margin-top: 3px;
+}
+
+
+.step-number {
+
+    color: #666;
+
+    font-size: 9px;
+
+    letter-spacing: 2px;
+}
+
+
+/* MAIN */
+
+main {
+
+    min-height:
+        calc(100vh - 130px);
+}
+
+
+/* WELCOME */
+
+.welcome {
+
+    max-width: 950px;
+
+    margin:
+        auto;
+
+    padding:
+        130px 25px;
+}
+
+
+.tag {
+
+    color: #777;
+
+    font-size: 9px;
+
+    letter-spacing: 3px;
+
+    margin-bottom: 18px;
+}
+
+
+.welcome h1 {
+
+    font-size:
+        clamp(52px, 8vw, 90px);
+
+    line-height: .95;
+
+    letter-spacing:
+        -6px;
+}
+
+
+.welcome h1 span {
+
+    color: #666;
+
+    display: block;
+}
+
+
+.welcome p {
+
+    max-width: 600px;
+
+    color: #888;
+
+    line-height: 1.8;
+
+    margin:
+        30px 0;
+}
+
+
+/* BUTTONS */
+
+.main-button {
+
+    background: #f5f5f5;
+
+    color: #080808;
+
+    border:
+        1px solid #f5f5f5;
+
+    padding:
+        14px 20px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    font-size: 11px;
+}
+
+
+.main-button span {
+
+    margin-left: 25px;
+}
+
+
+.main-button:hover {
+
+    background: #ccc;
+}
+
+
+.secondary {
+
+    background: transparent;
+
+    color: #aaa;
+
+    border:
+        1px solid #444;
+
+    padding:
+        14px 20px;
+
+    cursor: pointer;
+
+    font-size: 11px;
+}
+
+
+/* WIZARD */
+
+.wizard {
+
+    max-width: 900px;
+
+    margin:
+        auto;
+
+    padding:
+        55px 25px 90px;
+}
+
+
+.progress {
+
+    height: 2px;
+
+    background: #222;
+
+    margin-bottom: 60px;
+}
+
+
+#progressBar {
+
+    height: 100%;
+
+    background: #eee;
+
+    width: 14%;
+
+    transition: .4s;
+}
+
+
+.step {
+
+    max-width: 780px;
+}
+
+
+.number {
+
+    width: 55px;
+
+    height: 55px;
+
+    border:
+        1px solid #444;
+
+    display: grid;
+
+    place-items: center;
+
+    color: #aaa;
+
+    margin-bottom: 25px;
+}
+
+
+.step h2 {
+
+    font-size: 46px;
+
+    letter-spacing: -3px;
+
+    margin-bottom: 12px;
+}
+
+
+.step > p {
+
+    color: #777;
+
+    line-height: 1.7;
+
+    margin-bottom: 30px;
+}
+
+
+/* UPLOAD */
+
+.upload-box {
+
+    border:
+        1px dashed #444;
+
+    min-height: 210px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    position: relative;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    margin-bottom: 20px;
+}
+
+
+.upload-box input {
+
+    position: absolute;
+
+    inset: 0;
+
+    opacity: 0;
+
+    cursor: pointer;
+}
+
+
+.upload-icon {
+
+    width: 45px;
+
+    height: 45px;
+
+    border:
+        1px solid #555;
+
+    display: grid;
+
+    place-items: center;
+
+    font-size: 25px;
+
+    margin-bottom: 15px;
+}
+
+
+.upload-box span {
+
+    color: #555;
+
+    font-size: 9px;
+
+    margin-top: 8px;
+}
+
+
+.file-list {
+
+    margin-bottom: 25px;
+}
+
+
+.file-item {
+
+    border-bottom:
+        1px solid #222;
+
+    padding: 12px;
+
+    color: #999;
+
+    font-size: 11px;
+}
+
+
+/* FORM */
+
+.form {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 18px;
+}
+
+
+.form label {
+
+    color: #666;
+
+    font-size: 8px;
+
+    letter-spacing: 2px;
+}
+
+
+.form input {
+
+    display: block;
+
+    width: 100%;
+
+    margin-top: 8px;
+
+    background: #111;
+
+    color: white;
+
+    border:
+        1px solid #292929;
+
+    padding: 14px;
+
+    outline: none;
+}
+
+
+.full {
+
+    grid-column:
+        1 / -1;
+}
+
+
+/* ACTIONS */
+
+.buttons {
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    gap: 12px;
+
+    margin-top: 30px;
+}
+
+
+/* PROCESS */
+
+.process {
+
+    border:
+        1px solid #292929;
+
+    margin:
+        25px 0 30px;
+}
+
+
+.process div {
+
+    padding: 18px;
+
+    border-bottom:
+        1px solid #222;
+
+    color: #aaa;
+}
+
+
+.process div:last-child {
+
+    border-bottom: none;
+}
+
+
+/* QUESTION */
+
+.question-box {
+
+    border:
+        1px solid #333;
+
+    padding: 18px;
+}
+
+
+.question-box textarea {
+
+    width: 100%;
+
+    min-height: 150px;
+
+    background: transparent;
+
+    border: none;
+
+    color: white;
+
+    outline: none;
+
+    resize: vertical;
+}
+
+
+.suggestions {
+
+    display: flex;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+
+    margin-top: 12px;
+}
+
+
+.suggestions button {
+
+    background: transparent;
+
+    color: #777;
+
+    border:
+        1px solid #333;
+
+    padding: 10px;
+
+    font-size: 9px;
+
+    cursor: pointer;
+}
+
+
+/* ANSWER */
+
+.answer {
+
+    white-space: pre-wrap;
+
+    background: #111;
+
+    border:
+        1px solid #292929;
+
+    padding: 25px;
+
+    color: #bbb;
+
+    line-height: 1.8;
+
+    margin:
+        25px 0;
+}
+
+
+.source-button {
+
+    width: 100%;
+
+    background: transparent;
+
+    border:
+        1px solid #333;
+
+    color: #aaa;
+
+    text-align: left;
+
+    padding: 15px;
+
+    cursor: pointer;
+}
+
+
+.sources {
+
+    border:
+        1px solid #292929;
+
+    border-top: none;
+
+    padding: 15px;
+}
+
+
+.source {
+
+    border-bottom:
+        1px solid #222;
+
+    padding: 15px 5px;
+}
+
+
+.source:last-child {
+
+    border-bottom: none;
+}
+
+
+.source b {
+
+    display: block;
+
+    font-size: 12px;
+}
+
+
+.source small {
+
+    color: #666;
+
+    display: block;
+
+    margin-top: 7px;
+
+    line-height: 1.6;
+}
+
+
+/* CONCEPT MAP */
+
+.concept-map {
+
+    min-height: 320px;
+
+    border:
+        1px solid #292929;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    padding: 40px;
+
+    margin-bottom: 30px;
+}
+
+
+.concept-center {
+
+    width: 160px;
+
+    height: 160px;
+
+    border:
+        1px solid #888;
+
+    border-radius: 50%;
+
+    display: grid;
+
+    place-items: center;
+
+    text-align: center;
+
+    padding: 20px;
+}
+
+
+.concept-node {
+
+    border:
+        1px solid #444;
+
+    padding: 13px 18px;
+
+    color: #aaa;
+}
+
+
+/* REFERENCE */
+
+.reference-card {
+
+    background: #111;
+
+    border:
+        1px solid #333;
+
+    padding: 30px;
+
+    margin:
+        30px 0;
+}
+
+
+.reference-card p {
+
+    color: #bbb;
+
+    line-height: 1.8;
+}
+
+
+/* FOOTER */
+
+footer {
+
+    border-top:
+        1px solid #222;
+
+    padding:
+        30px 6%;
+
+    color: #555;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+}
+
+
+footer span {
+
+    margin:
+        0 10px;
+}
+
+
+/* HIDDEN */
+
+.hidden {
+
+    display: none !important;
+}
+
+
+/* MOBILE */
+
+@media(max-width: 650px) {
+
+    header {
+
+        padding:
+            0 20px;
+    }
+
+    .welcome,
+    .wizard {
+
+        padding-left:
+            20px;
+
+        padding-right:
+            20px;
+    }
+
+    .welcome h1 {
+
+        font-size: 55px;
+
+        letter-spacing: -4px;
+    }
+
+    .step h2 {
+
+        font-size: 38px;
+    }
+
+    .form {
+
+        grid-template-columns: 1fr;
+    }
+
+    .full {
+
+        grid-column: auto;
+    }
+
+    .buttons {
+
+        flex-direction: column;
+    }
+
+    .step-number {
+
+        display: none;
+    }
+}
